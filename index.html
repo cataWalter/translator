@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Language Translator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <div class="textbox">
+        <label for="inputText"></label><textarea id="inputText" placeholder="Enter your text here..."></textarea>
+    </div>
+    <div id="translations" class="translations"></div>
+    <button class="button" id="toggleLanguageButton">⬇️ Show languages</button>
+    <button class="button" id="updateLanguagesButton">🔃 Update languages</button>
+
+    <div class="language-selection" id="languageSelection">
+        <div id="languageCheckboxes"></div>
+    </div>
+
+</div>
+
+<script>
+    const allLanguages = [{code: 'zh-CN', label: 'Chinese'},
+        {code: 'en', label: 'English'},
+        {code: 'fr', label: 'French'},
+        {code: 'de', label: 'German'},
+        {code: 'it', label: 'Italian'},
+        {code: 'nl', label: 'Dutch'},
+        {code: 'pt', label: 'Portuguese'},
+        {code: 'es', label: 'Spanish'},
+        {code: 'ru', label: 'Russian'},
+        {code: 'tr', label: 'Turkish'}];
+
+    let languages = [];
+    loadLanguages();
+
+    // Reference to the translations container
+    const translationsContainer = document.getElementById('translations');
+    const languageCheckboxesContainer = document.getElementById('languageCheckboxes');
+
+    // Function to render translation result elements
+    function renderTranslations() {
+        translationsContainer.innerHTML = ''; // Clear existing translations
+        languages.forEach(langCode => {
+            const langObj = allLanguages.find(l => l.code === langCode);
+            const translationDiv = document.createElement('div');
+            translationDiv.className = 'translation-result';
+
+            const translationLabel = document.createElement('div');
+            translationLabel.className = 'translation-label';
+            translationLabel.innerHTML = `${langObj.label}:`; // Removed the flag
+
+            const translationText = document.createElement('div');
+            translationText.id = `translation${langObj.code.charAt(0).toUpperCase() + langObj.code.slice(1)}`;
+
+            translationDiv.appendChild(translationLabel);
+            translationDiv.appendChild(translationText);
+            translationsContainer.appendChild(translationDiv);
+        });
+    }
+
+    function loadLanguages() {
+        fetch('load_languages.php')
+            .then(response => response.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    languages = data; // Update the `languages` array with data from the database
+                    renderLanguageCheckboxes(); // Re-render the checkboxes to match the database state
+                    renderTranslations(); // Re-render translations based on the current languages
+                } else {
+                    console.error('Failed to load languages:', data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    function getSelectedLanguages() {
+        const checkboxes = document.querySelectorAll('#languageCheckboxes input[type="checkbox"]');
+        const selectedLanguages = [];
+        checkboxes.forEach((checkbox) => {
+            if (checkbox.checked) {
+                selectedLanguages.push(checkbox.value);
+            }
+        });
+        return selectedLanguages;
+    }
+
+    // Function to render language selection checkboxes with multiple columns
+    function renderLanguageCheckboxes() {
+        const numberOfColumns = 3; // Adjust this value to change the number of columns
+        const languagesPerColumn = Math.ceil(allLanguages.length / numberOfColumns);
+
+        languageCheckboxesContainer.innerHTML = ''; // Clear existing checkboxes
+
+        for (let i = 0; i < numberOfColumns; i++) {
+            const columnDiv = document.createElement('div');
+            columnDiv.classList.add('language-column');
+
+            allLanguages.slice(i * languagesPerColumn, (i + 1) * languagesPerColumn).forEach(lang => {
+                const checkboxDiv = document.createElement('div');
+                checkboxDiv.classList.add('checkbox-container');
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = `checkbox_${lang.code}`;
+                checkbox.value = lang.code;
+                checkbox.checked = languages.includes(lang.code);
+
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.innerHTML = `${lang.label}`; // Removed the flag
+
+                checkboxDiv.appendChild(checkbox);
+                checkboxDiv.appendChild(label);
+                columnDiv.appendChild(checkboxDiv);
+            });
+
+            languageCheckboxesContainer.appendChild(columnDiv);
+        }
+    }
+
+    // Initial render of translations and checkboxes
+    renderTranslations();
+    renderLanguageCheckboxes();
+
+    let debounceTimeout;
+
+    document.getElementById('inputText').addEventListener('input', function () {
+        clearTimeout(debounceTimeout);
+        const text = this.value;
+
+        debounceTimeout = setTimeout(function () {
+            languages.forEach(langCode => {
+                fetchTranslation(langCode, text, `translation${langCode.charAt(0).toUpperCase() + langCode.slice(1)}`);
+            });
+        }, 300);
+    });
+
+    function fetchTranslation(lang, text, elementId) {
+        if (text === '') {
+            document.getElementById(elementId).innerText = '';
+            return;
+        }
+
+        fetch(`translate.php?lang=${lang}&text=${encodeURIComponent(text)}`)
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById(elementId).innerText = data;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    const textarea = document.getElementById('inputText');
+    textarea.addEventListener('input', function () {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+    textarea.style.height = textarea.scrollHeight + 'px';
+
+    // Function to update selected languages based on checkboxes
+    function updateSelectedLanguages() {
+        languages = [];
+        allLanguages.forEach(lang => {
+            const checkbox = document.getElementById(`checkbox_${lang.code}`);
+            if (checkbox.checked) {
+                languages.push(lang.code);
+            }
+        });
+        document.getElementById('inputText').value = '';
+        console.log(languages);
+        renderTranslations(); // Re-render the translation sections
+        // Send the languages array to the PHP file
+        fetch('save_languages.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({languages})
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    console.log('Languages inserted successfully');
+                } else {
+                    console.error('Failed to insert languages');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+
+    document.getElementById('updateLanguagesButton').addEventListener('click', updateSelectedLanguages);
+
+    const toggleLanguageButton = document.getElementById('toggleLanguageButton');
+    const languageSelectionDiv = document.getElementById('languageSelection');
+
+    toggleLanguageButton.addEventListener('click', () => {
+        if (languageSelectionDiv.style.display === 'none' || !languageSelectionDiv.style.display) {
+            languageSelectionDiv.style.display = 'block';
+            toggleLanguageButton.textContent = '⬆️ Hide languages';
+        } else {
+            languageSelectionDiv.style.display = 'none';
+            toggleLanguageButton.textContent = '⬇️ Show languages';
+        }
+    });
+
+</script>
+</body>
+</html>
