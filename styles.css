@@ -1,16 +1,10 @@
-@font-face {
-    font-family: 'Inter';
-    src: url('fonts/web/Inter-Regular.woff2') format('woff2');
-    font-weight: normal;
-    font-style: normal;
-}
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
     padding: 0;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
     min-height: 100vh;
     background-color: #f9f9f9;
     overflow-y: auto;
@@ -29,7 +23,7 @@ body {
 
 .textbox {
     margin-bottom: 20px;
-    background-color: ghostwhite; /* Grey background */
+    background-color: ghostwhite;
     padding: 10px;
     border-radius: 6px;
 }
@@ -78,38 +72,57 @@ body {
     display: none;
 }
 
-/* Common button styles */
 .button {
-    background-color: #007BFF; /* Blue background */
-    border: none; /* No border */
-    color: white; /* White text */
-    padding: 12px 24px; /* Padding */
-    text-align: center; /* Center text */
-    text-decoration: none; /* No underline */
-    display: inline-block; /* Inline-block element */
-    font-size: 16px; /* Font size */
-    margin: 4px 2px; /* Margin */
-    cursor: pointer; /* Pointer cursor on hover */
-    border-radius: 5px; /* Rounded corners */
-    transition: background-color 0.3s, transform 0.3s; /* Smooth transition */
+    background-color: #007BFF;
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s, transform 0.3s;
 }
 
-/* Hover effect */
 .button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
-    transform: translateY(-2px); /* Lift effect */
+    background-color: #0056b3;
+    transform: translateY(-2px);
 }
 
 .language-column {
     float: left;
-    width: 30%; /* Adjust the width according to the number of columns */
+    width: 30%;
     padding: 10px;
     box-sizing: border-box;
 }
 
-/* Clearfix to ensure that columns don't overlap */
 .language-checkboxes-container::after {
     content: "";
     display: table;
     clear: both;
+}
+
+footer {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+    position: relative;
+    bottom: 0;
+    left: 0;
+    box-sizing: border-box;
+    margin-top: auto;
+}
+
+.linkedin-link {
+    color: cornflowerblue; /* Blue color */
+    text-decoration: none; /* Remove underline */
+    font-weight: bold; /* Bold text */
+}
+
+.linkedin-link:hover {
+    text-decoration: underline; /* Underline on hover */
+    color: darkblue; /* Darker blue on hover */
 }

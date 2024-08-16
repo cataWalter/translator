@@ -12,6 +12,7 @@
         <label for="inputText"></label><textarea id="inputText" placeholder="Enter your text here..."></textarea>
     </div>
     <div id="translations" class="translations"></div>
+    <br> <br> <br>
     <button class="button" id="toggleLanguageButton">⬇️ Show languages</button>
     <button class="button" id="updateLanguagesButton">🔃 Update languages</button>
 
@@ -22,16 +23,19 @@
 </div>
 
 <script>
-    const allLanguages = [{code: 'zh-CN', label: 'Chinese'},
-        {code: 'en', label: 'English'},
-        {code: 'fr', label: 'French'},
-        {code: 'de', label: 'German'},
-        {code: 'it', label: 'Italian'},
-        {code: 'nl', label: 'Dutch'},
-        {code: 'pt', label: 'Portuguese'},
-        {code: 'es', label: 'Spanish'},
-        {code: 'ru', label: 'Russian'},
-        {code: 'tr', label: 'Turkish'}];
+    const allLanguages = [
+            {code: 'zh-CN', label: 'Chinese', message: '开始输入文本以查看内容'},
+            {code: 'en', label: 'English', message: 'Start inserting text in order to see something'},
+            {code: 'fr', label: 'French', message: 'Commencez à insérer du texte pour voir quelque chose'},
+            {code: 'de', label: 'German', message: 'Beginnen Sie mit der Eingabe von Text, um etwas zu sehen'},
+            {code: 'it', label: 'Italian', message: 'Inizia a inserire del testo per vedere qualcosa'},
+            {code: 'nl', label: 'Dutch', message: 'Begin met het invoeren van tekst om iets te zien'},
+            {code: 'pt', label: 'Portuguese', message: 'Comece a inserir texto para ver algo'},
+            {code: 'es', label: 'Spanish', message: 'Comience a insertar texto para ver algo'},
+            {code: 'ru', label: 'Russian', message: 'Начните вводить текст, чтобы что-то увидеть'},
+            {code: 'tr', label: 'Turkish', message: 'Bir şey görmek için metin eklemeye başlayın'}
+        ]
+    ;
 
     let languages = [];
     loadLanguages();
@@ -43,6 +47,8 @@
     // Function to render translation result elements
     function renderTranslations() {
         translationsContainer.innerHTML = ''; // Clear existing translations
+        const inputText = document.getElementById('inputText').value;
+
         languages.forEach(langCode => {
             const langObj = allLanguages.find(l => l.code === langCode);
             const translationDiv = document.createElement('div');
@@ -50,7 +56,7 @@
 
             const translationLabel = document.createElement('div');
             translationLabel.className = 'translation-label';
-            translationLabel.innerHTML = `${langObj.label}:`; // Removed the flag
+            translationLabel.innerHTML = `${langObj.label}:`;
 
             const translationText = document.createElement('div');
             translationText.id = `translation${langObj.code.charAt(0).toUpperCase() + langObj.code.slice(1)}`;
@@ -58,6 +64,13 @@
             translationDiv.appendChild(translationLabel);
             translationDiv.appendChild(translationText);
             translationsContainer.appendChild(translationDiv);
+
+            // Display default message or fetch translation
+            if (inputText === '') {
+                translationText.innerText = langObj.message;
+            } else {
+                fetchTranslation(langCode, inputText, translationText.id);
+            }
         });
     }
 
@@ -78,16 +91,6 @@
             });
     }
 
-    function getSelectedLanguages() {
-        const checkboxes = document.querySelectorAll('#languageCheckboxes input[type="checkbox"]');
-        const selectedLanguages = [];
-        checkboxes.forEach((checkbox) => {
-            if (checkbox.checked) {
-                selectedLanguages.push(checkbox.value);
-            }
-        });
-        return selectedLanguages;
-    }
 
     // Function to render language selection checkboxes with multiple columns
     function renderLanguageCheckboxes() {
@@ -141,15 +144,16 @@
     });
 
     function fetchTranslation(lang, text, elementId) {
+        const element = document.getElementById(elementId);
         if (text === '') {
-            document.getElementById(elementId).innerText = '';
+            element.innerText = allLanguages.find(l => l.code === lang).message; // Show default message
             return;
         }
 
         fetch(`translate.php?lang=${lang}&text=${encodeURIComponent(text)}`)
             .then(response => response.text())
             .then(data => {
-                document.getElementById(elementId).innerText = data;
+                element.innerText = data;
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -213,4 +217,7 @@
 
 </script>
 </body>
+<footer>
+    <a href="https://www.linkedin.com/in/walter-catalfamo/" class="linkedin-link">Walter Catalfamo</a>
+</footer>
 </html>
